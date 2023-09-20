@@ -1,3 +1,5 @@
+import random
+
 # 主角类
 class Hero:
     def __init__(self, name, hp, attack, defense):
@@ -85,8 +87,14 @@ class Map:
     def trigger_event(self, event):
         if event == "monster":
             print("遇到了一只怪物！")
+            enemy = Enemy("魔王", 100, 20, 10)
+            battle = Battle(hero, enemy)
+            battle.start()
         elif event == "treasure":
             print("发现了一处宝藏！")
+            reward = random.randint(1, 10) * 10
+            hero.hp += reward
+            print(f"{hero.name}获得了{reward}点生命值。")
         else:
             print("无效的事件。")
 
@@ -107,17 +115,19 @@ class Event:
 class Game:
     def __init__(self):
         self.hero = Hero("勇士", 100, 20, 10)
-        self.enemy = Enemy("魔王", 200, 30, 20)
         self.map = Map((10, 10), "平原")
         self.event = Event(True, 100)
 
     def start(self):
         print("游戏开始！")
-        battle = Battle(self.hero, self.enemy)
-        battle.start()
-        self.map.move("up")
-        self.map.trigger_event("monster")
-        self.event.trigger()
+        while self.hero.hp > 0:
+            direction = input("请输入移动方向（up/down/left/right）：")
+            self.map.move(direction)
+            event = input("是否触发事件（y/n）：")
+            if event == "y":
+                event_type = input("请选择事件类型（monster/treasure）：")
+                self.map.trigger_event(event_type)
+            self.event.trigger()
         print("游戏结束！")
 
 game = Game()
