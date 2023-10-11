@@ -1,28 +1,42 @@
+# FILEPATH: /Users/trysh/project/vscode/aigame/aigame.py
 import random
 
 # 主角类
 class Hero:
-    def __init__(self, name, hp, attack, defense):
+    def __init__(self, name, hp, attack, defense, gold):
         self.name = name
         self.hp = hp
         self.attack = attack
         self.defense = defense
+        self.gold = gold
 
     def attack_enemy(self, enemy):
         damage = self.attack - enemy.defense
         if damage > 0:
             enemy.hp -= damage
-            print(f"{self.name}攻击了{enemy.name}，造成了{damage}点伤害。")
+            print(f"{self.name}对{enemy.name}造成了{damage}点伤害。")
         else:
-            print(f"{self.name}攻击了{enemy.name}，但是没有造成伤害。")
+            print(f"{self.name}的攻击被{enemy.name}防御了。")
 
     def defend(self):
         self.defense *= 2
-        print(f"{self.name}进入了防御状态，防御力翻倍。")
+        print(f"{self.name}进入了防御状态。")
 
     def resume_defense(self):
         self.defense //= 2
-        print(f"{self.name}的防御状态结束，防御力恢复正常。")
+        print(f"{self.name}结束了防御状态。")
+
+    def buy_item(self, item):
+        if self.gold >= item.price:
+            self.gold -= item.price
+            if item.name == "药水":
+                self.hp += item.effect
+                print(f"{self.name}使用了{item.name}，恢复了{item.effect}点生命值。")
+            elif item.name == "护盾":
+                self.defense += item.effect
+                print(f"{self.name}使用了{item.name}，防御力提升了{item.effect}点。")
+        else:
+            print("金币不足，无法购买。")
 
 # 敌人类
 class Enemy:
@@ -36,17 +50,17 @@ class Enemy:
         damage = self.attack - hero.defense
         if damage > 0:
             hero.hp -= damage
-            print(f"{self.name}攻击了{hero.name}，造成了{damage}点伤害。")
+            print(f"{self.name}对{hero.name}造成了{damage}点伤害。")
         else:
-            print(f"{self.name}攻击了{hero.name}，但是没有造成伤害。")
+            print(f"{self.name}的攻击被{hero.name}防御了。")
 
     def defend(self):
         self.defense *= 2
-        print(f"{self.name}进入了防御状态，防御力翻倍。")
+        print(f"{self.name}进入了防御状态。")
 
     def resume_defense(self):
         self.defense //= 2
-        print(f"{self.name}的防御状态结束，防御力恢复正常。")
+        print(f"{self.name}结束了防御状态。")
 
 # 战斗类
 class Battle:
@@ -55,22 +69,36 @@ class Battle:
         self.enemy = enemy
 
     def start(self):
-        print(f"{self.hero.name} vs {self.enemy.name}，战斗开始！")
+        print(f"{self.hero.name}遭遇了{self.enemy.name}！")
         while self.hero.hp > 0 and self.enemy.hp > 0:
-            self.hero.attack_enemy(self.enemy)
-            if self.enemy.hp <= 0:
-                break
-            self.enemy.attack_hero(self.hero)
-        if self.hero.hp > 0:
-            print(f"{self.hero.name}获得了胜利！")
-        else:
-            print(f"{self.enemy.name}获得了胜利！")
+            action = input("请选择行动（attack/defend）：")
+            if action == "attack":
+                self.hero.attack_enemy(self.enemy)
+                if self.enemy.hp <= 0:
+                    print(f"{self.hero.name}战胜了{self.enemy.name}！")
+                    self.hero.gold += random.randint(1, 10) * 10
+                    print(f"{self.hero.name}获得了{self.hero.gold}金币。")
+                    break
+                self.enemy.attack_hero(self.hero)
+                if self.hero.hp <= 0:
+                    print(f"{self.hero.name}被{self.enemy.name}击败了！")
+                    break
+            elif action == "defend":
+                self.hero.defend()
+                self.enemy.attack_hero(self.hero)
+                if self.hero.hp <= 0:
+                    print(f"{self.hero.name}被{self.enemy.name}击败了！")
+                    break
+                self.hero.resume_defense()
+            else:
+                print("无效的行动。")
 
 # 地图类
 class Map:
     def __init__(self, size, terrain):
         self.size = size
         self.terrain = terrain
+        self.shop = Shop()
 
     def move(self, direction):
         if direction == "up":
@@ -81,6 +109,8 @@ class Map:
             print("向左移动了一格。")
         elif direction == "right":
             print("向右移动了一格。")
+        elif direction == "shop":
+            self.shop.visit()
         else:
             print("无效的移动方向。")
 
@@ -93,10 +123,43 @@ class Map:
         elif event == "treasure":
             print("发现了一处宝藏！")
             reward = random.randint(1, 10) * 10
-            hero.hp += reward
-            print(f"{hero.name}获得了{reward}点生命值。")
+            hero.gold += reward
+            print(f"{hero.name}获得了{reward}金币。")
         else:
             print("无效的事件。")
+
+# 商店类
+class Shop:
+    def __init__(self):
+        self.items = [
+            Item("药水", "恢复20点生命值", 50, 20),
+            Item("护盾", "提升10点防御力", 100, 10)
+        ]
+
+    def visit(self):
+        print("欢迎光临！以下是本店的商品：")
+        for i, item in enumerate(self.items):
+            print(f"{i+1}. {item.name} - {item.description} - {item.price}金币")
+        choice = input("请选择要购买的商品编号（输入0退出）：")
+        if choice.isdigit():
+            choice = int(choice)
+            if choice > 0 and choice <= len(self.items):
+                item = self.items[choice-1]
+                hero.buy_item(item)
+            elif choice == 0:
+                print("欢迎下次光临！")
+            else:
+                print("无效的商品编号。")
+        else:
+            print("无效的输入。")
+
+# 物品类
+class Item:
+    def __init__(self, name, description, price, effect):
+        self.name = name
+        self.description = description
+        self.price = price
+        self.effect = effect
 
 # 事件类
 class Event:
@@ -114,14 +177,14 @@ class Event:
 # 游戏类
 class Game:
     def __init__(self):
-        self.hero = Hero("勇士", 100, 20, 10)
+        self.hero = Hero("勇士", 100, 20, 10, 0)
         self.map = Map((10, 10), "平原")
         self.event = Event(True, 100)
 
     def start(self):
         print("游戏开始！")
         while self.hero.hp > 0:
-            direction = input("请输入移动方向（up/down/left/right）：")
+            direction = input("请输入移动方向（up/down/left/right/shop）：")
             self.map.move(direction)
             event = input("是否触发事件（y/n）：")
             if event == "y":
