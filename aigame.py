@@ -9,17 +9,17 @@ class Hero:
         self.attack = attack
         self.defense = defense
         self.gold = gold
-        self.experience = 0  # 新增：经验值
-        self.level = 1  # 新增：等级
+        self.experience = 0  # 经验值
+        self.level = 1  # 等级
 
-    # 新增：获得经验
+    # 获得经验
     def gain_experience(self, amount):
         self.experience += amount
         print(f"{self.name}获得了{amount}点经验。")
         if self.experience >= self.level * 100:
             self.level_up()
 
-    # 新增：升级
+    # 升级
     def level_up(self):
         self.experience -= self.level * 100
         self.level += 1
@@ -27,6 +27,11 @@ class Hero:
         self.attack += 2
         self.defense += 2
         print(f"{self.name}升级了！现在是{self.level}级。")
+
+    # 新增：休息
+    def rest(self):
+        self.hp += 10
+        print(f"{self.name}休息了一会儿，恢复了10点生命值。")
 
 # 敌人类
 class Enemy:
