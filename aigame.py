@@ -9,34 +9,24 @@ class Hero:
         self.attack = attack
         self.defense = defense
         self.gold = gold
+        self.experience = 0  # 新增：经验值
+        self.level = 1  # 新增：等级
 
-    def attack_enemy(self, enemy):
-        damage = self.attack - enemy.defense
-        if damage > 0:
-            enemy.hp -= damage
-            print(f"{self.name}对{enemy.name}造成了{damage}点伤害。")
-        else:
-            print(f"{self.name}的攻击被{enemy.name}防御了。")
+    # 新增：获得经验
+    def gain_experience(self, amount):
+        self.experience += amount
+        print(f"{self.name}获得了{amount}点经验。")
+        if self.experience >= self.level * 100:
+            self.level_up()
 
-    def defend(self):
-        self.defense *= 2
-        print(f"{self.name}进入了防御状态。")
-
-    def resume_defense(self):
-        self.defense //= 2
-        print(f"{self.name}结束了防御状态。")
-
-    def buy_item(self, item):
-        if self.gold >= item.price:
-            self.gold -= item.price
-            if item.name == "药水":
-                self.hp += item.effect
-                print(f"{self.name}使用了{item.name}，恢复了{item.effect}点生命值。")
-            elif item.name == "护盾":
-                self.defense += item.effect
-                print(f"{self.name}使用了{item.name}，防御力提升了{item.effect}点。")
-        else:
-            print("金币不足，无法购买。")
+    # 新增：升级
+    def level_up(self):
+        self.experience -= self.level * 100
+        self.level += 1
+        self.hp += 10
+        self.attack += 2
+        self.defense += 2
+        print(f"{self.name}升级了！现在是{self.level}级。")
 
 # 敌人类
 class Enemy:
@@ -64,10 +54,6 @@ class Enemy:
 
 # 战斗类
 class Battle:
-    def __init__(self, hero, enemy):
-        self.hero = hero
-        self.enemy = enemy
-
     def start(self):
         print(f"{self.hero.name}遭遇了{self.enemy.name}！")
         while self.hero.hp > 0 and self.enemy.hp > 0:
@@ -78,6 +64,7 @@ class Battle:
                     print(f"{self.hero.name}战胜了{self.enemy.name}！")
                     self.hero.gold += random.randint(1, 10) * 10
                     print(f"{self.hero.name}获得了{self.hero.gold}金币。")
+                    self.hero.gain_experience(50)  # 新增：获得经验
                     break
                 self.enemy.attack_hero(self.hero)
                 if self.hero.hp <= 0:
